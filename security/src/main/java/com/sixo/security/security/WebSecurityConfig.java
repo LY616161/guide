@@ -25,6 +25,12 @@ import javax.sql.DataSource;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
+    private CustomLogoutSuccessHandler logoutSuccessHandler;
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    @Autowired
+    private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+    @Autowired
     private CustomUserDetailsService userDetailsService;
     @Autowired
     private DataSource dataSource;
@@ -57,25 +63,39 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http.logout()
+                .logoutUrl("/signout")
+                .deleteCookies("JSESSIONID")
+                .and()
+                .authorizeRequests()
                 // 如果有允许匿名的url，填在下面
-                .antMatchers("/getVerifyCode").permitAll()
+                .antMatchers("/getVerifyCode","/login","/signout","login/invalid").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 // 设置登陆页
                 .formLogin().loginPage("/login")
+                .successHandler(customAuthenticationSuccessHandler)
+                .failureHandler(customAuthenticationFailureHandler)
+                .and()
+                .sessionManagement()
+                .invalidSessionUrl("/login/invalid")
+                .maximumSessions(1)
+                // 当达到最大值时，是否保留已经登录的用户
+                .maxSessionsPreventsLogin(false)
+                .expiredSessionStrategy(new CustomExpiredSessionStrategy());
+
                 // 设置登陆成功页
-                .defaultSuccessUrl("/").permitAll()
-                .failureUrl("/login/error")
+//                .defaultSuccessUrl("/").permitAll()
+//                .failureUrl("/login/error")
                 // 自定义登陆用户名和密码参数，默认为username和password
 //                .usernameParameter("username")
 //                .passwordParameter("password")
-                .authenticationDetailsSource(authenticationDetailsSource)
-                .and()
+//                .authenticationDetailsSource(authenticationDetailsSource)
+//                .and()
 //                .addFilterBefore(new VerifyFilter(),UsernamePasswordAuthenticationFilter.class)
-                .logout().permitAll()
-                .and().rememberMe()
-                .tokenRepository(persistentTokenRepository());
+//                .logout().permitAll()
+//                .and().rememberMe()
+//                .tokenRepository(persistentTokenRepository());
 
         // 关闭CSRF跨域
         http.csrf().disable();
