@@ -7,11 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="security" />
+        <module name="sixo-eureka-single" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="mysecurity" target="1.8" />
       <module name="security" target="1.8" />
+      <module name="security-oauth" target="1.8" />
+      <module name="sixo-eureka-single" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
